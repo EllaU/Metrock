@@ -60,7 +60,7 @@ const HomeScreen=({navigation,route})=>{
 
             <ScrollView style={{alignSelf:'center',width:'90%',height:'80%'}}>
              <View style={{width:'100%',justifyContent:'center',marginTop:'15%'}}>
-                    <Text style={{fontSize:20,alignSelf:'center',color:'black',fontFamily:'Quicksand-SemiBold'}}>View</Text>
+                    <Text style={{fontSize:20,alignSelf:'center',color:'black',fontFamily:'Quicksand-SemiBold'}}>Receipt</Text>
                     <TouchableOpacity  onPress={() => navigation.goBack()} style={{position:'absolute'}}>
                     <Feather name="arrow-left" size={20} color={"black"} />
                     </TouchableOpacity>
@@ -78,9 +78,9 @@ const HomeScreen=({navigation,route})=>{
 
                 </View>
                 <View style={{width:'100%',marginBottom:'5%'}}>
-                 <Text style={{fontSize:12,color:'grey',fontFamily:'Quicksand-Regular'}}>
+                 {/* <Text style={{fontSize:12,color:'grey',fontFamily:'Quicksand-Regular'}}>
                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eget ornare curabitur viverra.
-                 </Text>
+                 </Text> */}
 
 
 
@@ -185,7 +185,7 @@ const HomeScreen=({navigation,route})=>{
                  <Text style={{fontSize:13,color:'black',fontFamily:'Quicksand-SemiBold',marginLeft:2}}>Amount Paid </Text>
 
                     {tOwe == "true"?
-                                      <Text style={{fontSize:13,color:"red",fontFamily:'Quicksand-SemiBold'}}>N{tamountP} </Text>
+                                      <Text style={{fontSize:13,color:"red",fontFamily:'Quicksand-SemiBold'}}>N{Math.abs(parseInt(tamountP))}</Text>
                             :
                             <Text style={{fontSize:13,color:"green",fontFamily:'Quicksand-SemiBold'}}>N{tamountP} </Text>
 

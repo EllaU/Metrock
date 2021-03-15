@@ -16,7 +16,10 @@ import SmoothPicker from 'react-native-smooth-picker';
 import Feather from 'react-native-vector-icons/Feather';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 
-
+import realm,{
+  getSync,
+  updateSync
+}from '../Database';
 
 
 
@@ -54,17 +57,35 @@ const HomeScreen=({navigation,route})=>{
   const [searchText,setSearchText]=useState();
   const [token,setToken]=useState();
 
+  const[picked,setPicked]=useState([]);
+
   const [syncData,setSyncData]=useState([]);
   useEffect(() => { 
-    AsyncStorage.getItem('Sync').then(
-        (value) =>
-          {
-            
-            setSyncData(JSON.parse(value));
-          
+    var get = getSync()
+
+    const ok = get.map(item=>{
+      return item;
+    })
+ 
+    setSyncData(ok.reverse());
+  
+    if (get.length == 0){
+      setPicked([])
+    }else{
+      setPicked(get.filter(x =>
+        x.synced == false 
+      ))
+      
+    }
+
     
-          }
-        );
+    // AsyncStorage.getItem('Sync').then(
+    //     (value) =>
+    //       {
+           
+  
+    //       }
+    //     );
 
         AsyncStorage.getItem('Token').then(
           (value) =>
@@ -75,9 +96,9 @@ const HomeScreen=({navigation,route})=>{
       
             }
           );
-  
-
-
+          
+            
+         
 }, []);
   
 
@@ -93,19 +114,13 @@ const HomeScreen=({navigation,route})=>{
 
 
 
-  const handleCancel = () => {
-    setVisible(false);
-  };
-
-  const handleDelete = () => {
-    // The user has pressed the "Delete" button, so here you can do your own logic.
-    // ...Your logic
-    setVisible(false);
-  };
-
   const filteredData = searchText
-      ? syncData.filter(x =>
-          x.ref.toLowerCase().includes(searchText.toLowerCase())
+      ? syncData.filter(x =>{
+          return x.ref.toLowerCase().includes(searchText.toLowerCase()) ||
+                x.client.name.toLowerCase().includes(searchText.toLowerCase())||
+                x.client.phone.includes(searchText)
+            }
+          
         )
       : syncData;
 
@@ -131,32 +146,47 @@ const HomeScreen=({navigation,route})=>{
   );
 }
 
-const picked= syncData.filter(x =>
-  x.synced == false //not quantity but new quantity prop
-);
 
-console.log(picked)
+
+
+
 
 const sync=()=>{
 
   syncData.forEach(myFunction);
 
-}
+  setSpinner(true);
 
-function myFunction(item,index){
+}
+var itemsProcessed = 0;
+
+function myFunction(item,index,array){
+
+  console.log(item)
+  console.log(item.products)
+
+  const fProducts = item.products.map(item=>{
+    const o = {
+      product_id : parseInt( item.product_id),
+      quantity : parseInt(item.quantity),
+      price :parseInt(item.price)
+    }
+
+    return o;
+  })
 
   if(item.synced == false){
     const data =  {
       "ref":item.ref,
-      "invoice_no": item.invoice_no,
-      "sales_location_id":parseInt(item.sales_location_id),
-      "performed_at":JSON.stringify(item.performed_at),
-      "amount_paid":parseInt(item.amount_paid),
-      "client":{
-        "phone": item.client.phone,
-        "name":item.client.name
+      "invoice_no":item.invoice_no,
+      "sales_location_id": item.sales_location_id,
+      "performed_at": item.performed_at,
+      "amount_paid": item.amount_paid,
+      "client": {
+        "phone": item.client[0].phone,
+        "name": item.client[0].name
       },
-      "products":item.products
+      "products": fProducts
     }
   
     // console.log(data)
@@ -173,18 +203,22 @@ function myFunction(item,index){
     })
    .then(response => response.json())
    .then(data => {
+      console.log(data)
     if(data.success==true){
-      syncData[index].synced = true;
-      setisRender(!isRender);
-  
-      console.log(item.synced);
+      updateSync(item.ref)
+      showToast(item.ref+ "synced succesfully")
+      //update async
+      setisRender(!isRender);  
       showToast(item.ref + "synced succesfully")
     
     }
     else{
-      console.log(data)
+      showToast(data.message)
+      setSpinner(false)
+
+     
     }
-       //  toastr synced and async storage sync where ref == item.ref 
+       //  toastr synZced and async storage sync where ref == item.ref 
   
     })
     .catch((error) => {
@@ -197,7 +231,11 @@ function myFunction(item,index){
   }
 
 
- 
+  console.log(itemsProcessed +"p"+ (array.length-1))
+  itemsProcessed++;
+  if(itemsProcessed == (array.length-1)) {
+    setSpinner(false)
+  }
 
 }
 
@@ -210,8 +248,8 @@ const renderItem = ({ item,index }) => {
       onPress={()=>{
         navigation.navigate("ViewScreen",{
           tDate : item.date,
-          tname: item.client.name,
-          tphone: item.client.phone,
+          tname: item.client[0].name,
+          tphone: item.client[0].phone,
           tRef: item.ref,
           tProducts: item.products,
           tamountP: item.amount_paid,
@@ -226,7 +264,7 @@ const renderItem = ({ item,index }) => {
         <View style={{flexDirection:'row',justifyContent:'space-between',width:'100%'}}>
 
           <View style={{flexDirection:'row',}}>
-          <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:15,marginRight:7}}>{item.client.name}</Text> 
+          <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:15,marginRight:7}}>{item.client[0].name}</Text> 
 
             {item.synced?
 
@@ -279,12 +317,13 @@ const renderItem = ({ item,index }) => {
 
                       // Making the Under line Transparent.
                       underlineColorAndroid='transparent'
-                      placeholder="Search in transaction Id"
+                      placeholder="Search..."
                       placeholderTextColor='#E0E0E0' 
                       style={{fontFamily:'Quicksand-Regular',paddingLeft:15,alignSelf:'center',height:40,width:"100%",borderWidth:1,borderColor:'#E0E0E0',fontSize:13,color:'black',width:'90%'}}
                       />
             
              <FlatList
+              // inverted
               horizontal={false}
               style={{width:"90%",alignSelf:'center'}}
               data={filteredData}

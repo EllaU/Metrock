@@ -15,6 +15,7 @@ import {
   SkypeIndicator,
   UIActivityIndicator,
   WaveIndicator,
+  
 } from 'react-native-indicators';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
@@ -25,7 +26,7 @@ import {useState,useEffect} from 'react';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 
 
-
+// import { TouchableOpacity} from 'react-native-gesture-handler'
 // import all the components we are going to use
 import {
   ActivityIndicator,
@@ -42,59 +43,56 @@ import {
   Image,
   Button,
   TouchableOpacity,
-  FlatList
+
+  FlatList,
+  
 } from 'react-native';
 
+import realm,{
+  getAllClients
+}from '../Database';
 
-const HomeScreen=({navigation})=>{
+
+const HomeScreen=({navigation,props})=>{
 
   const [searchText,setSearchText]=useState();
+ const right = getAllClients()
 
-  const[data,setData]=useState([])
-
-  AsyncStorage.getItem('Clients').then(
-    (value) =>
-    setData(JSON.parse(value))
-  );
-     
- 
+  const ok = right.map(item=>{
+    return item;
+  })
+  const[data,setData]=useState(ok.reverse())
 
   const filteredData = searchText
   ? data.filter(x =>
-      x.name.toLowerCase().includes(searchText.toLowerCase())
-    )
+        {
+           return x.name.toLowerCase().includes(searchText.toLowerCase())||
+          x.phone.includes(searchText)
+         }
+        
+           )
   : data;
+  
 
-
-  const NavigationDrawerStructure = (props)=> {
-  //Structure for the navigatin Drawer
   const toggleDrawer = () => {
+
+    // console.log('hi')
     //Props to open/close the drawer
-    props.navigationProps.toggleDrawer();
+    navigation.toggleDrawer()
   };
 
 
-  return (
-    <View style={{ flexDirection: 'row' }}>
-      <TouchableOpacity onPress={()=> toggleDrawer()}>
-        {/*Donute Button Image */}
-        <Feather name="align-left" size={20} color={"rgba(255,2555,255,1.0)"} />
-
-      </TouchableOpacity>
-    </View>
-  );
-}
 
 
 
 const renderItem = ({ item,index }) => {
 
   return (
-    <TouchableOpacity style={{height:80,width:'100%',backgroundColor:'#F9F9F9',justifyContent:'center',marginTop:15}}>
+    <View style={{height:80,width:'100%',backgroundColor:'#F9F9F9',justifyContent:'center',marginTop:15}}>
     <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%'}}>
       <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>{item.name}</Text> 
       {item.owe == "true"?
-      <Text style={{fontFamily:"Quicksand-SemiBold",color:"red",fontSize:13}}>N{item.amountD}</Text> 
+      <Text style={{fontFamily:"Quicksand-SemiBold",color:"red",fontSize:13}}>N{Math.abs(parseInt(item.amountD))}</Text> 
       :
         <Text style={{fontFamily:"Quicksand-SemiBold",color:"green",fontSize:13}}>N{item.amountD}</Text> 
 
@@ -106,72 +104,58 @@ const renderItem = ({ item,index }) => {
     </View>
     <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%',marginTop:'1%'}}>
       <Text style={{fontFamily:"Quicksand-Regular",color:'#828282',fontSize:11}}>{item.date}</Text> 
-      <Text style={{fontFamily:"Quicksand-Regular",color:'black',fontSize:11}}>Available Balance</Text> 
+      <Text style={{fontFamily:"Quicksand-Regular",color:'black',fontSize:11}}>Account Balance</Text> 
 
     </View>
-    </TouchableOpacity>
+    </View>
   )
 }
 
   return (
     <>
     <SafeAreaView style={{backgroundColor:'white',height:'100%' }}>
-         <StatusBar translucent={true}
-              backgroundColor={'#4e3caf'}
+    <StatusBar translucent={true}
+         barStyle={'dark-content'}
+              backgroundColor={'white'}
              />
-             
         
-        <View style={{height:hp("40%"),backgroundColor:'#4e3caf',width:"100%",borderBottomLeftRadius:40,borderBottomRightRadius:40}}>
+            <View style={{width:'100%',justifyContent:'center',marginTop:'15%',marginBottom:'3%'}}>
+                 <Text style={{fontSize:20,alignSelf:'center',color:'black',fontFamily:'Quicksand-Regular'}}>Clients</Text>
+                 <View style={{ flexDirection: 'row',position:'absolute',marginLeft:'5%' }}>
+                    <TouchableOpacity onPress={()=> toggleDrawer()}>
+                      {/*Donute Button Image */}
+                      <Feather name="align-left" size={20} color={"rgba(0,0,0,0.5)"} />
+                
+                    </TouchableOpacity>
+                  </View>
 
-          <View style={{height:'100%',alignItems:'center',paddingTop:'13%'}}>
-            <Image
-            source={require('../assets/logo.png')}
-            style={{resizeMode: 'contain',height:"25%",width:"25%"}}
 
-              />
-            <Text style={{fontFamily:"Quicksand-SemiBold",color:'white',fontSize:20,marginTop:"4%"}}>Client</Text> 
-            <Text style={{fontFamily:"Quicksand-Regular",color:'white',fontSize:11,marginTop:"5%"}}>Start selling, start earning</Text> 
-            <TextInput
-                          onChangeText={text => setSearchText(text)}
-                          value={searchText}
+             </View>
+             <TextInput
+                      onChangeText={text => setSearchText(text)}
+                      value={searchText}
+
+                      // onChangeText={RefCode => this.setState({RefCode})}
+
+                      // Making the Under line Transparent.
                       underlineColorAndroid='transparent'
-                      placeholder="Search for customers"
-                      placeholderTextColor='grey' 
-                      style={{fontFamily:'Quicksand-Regular',paddingLeft:15,alignSelf:'center',height:40,width:"100%",borderWidth:1,borderColor:'#E0E0E0',fontSize:13,color:'black',width:'75%',backgroundColor:'white',borderRadius:5,marginTop:'5%'}}
+                      placeholder="Search for a client"
+                      placeholderTextColor='#E0E0E0' 
+                      style={{fontFamily:'Quicksand-Regular',paddingLeft:15,alignSelf:'center',height:40,width:"100%",borderWidth:1,borderColor:'#E0E0E0',fontSize:13,color:'black',width:'90%'}}
                       />
-            </View>
-          <View style={{position:'absolute',marginTop:'20%',marginLeft:'5%',}}>
-          <NavigationDrawerStructure navigationProps={navigation} />
+            
 
-          </View> 
-
-
-          </View>
-      
-         
-         
-          <View style={{width:'90%',alignSelf:'center'}}>
-
-          <FlatList
-              horizontal={false}
-              style={{width:"100%",alignSelf:'center'}}
-              data={filteredData}
-              keyExtractor={(item)=> item.phone.toString()}
-              renderItem={renderItem}  
-              
-             />
-
-            <View style={{height:100}}>
-
-            </View>
-
-          </View>
         
+        <FlatList
+            
+            horizontal={false}
+            style={{width:"90%",alignSelf:'center'}}
+            data={filteredData}
+            // keyExtractor={(item)=> item.phone.toString()}
+            renderItem={renderItem}  
+            
+          />
 
-     
-      
-     
-     
     </SafeAreaView>
     </>
   );

@@ -21,6 +21,7 @@ import HomeScreen from './HomeScreen'
 import App from '../App'
 
 import ClientScreen from './ClientScreen';
+import Refresh from './Refresh';
 import ViewScreen from './ViewScreen';
 import InventoryScreen from './InventoryScreen';
 import ProductsScreen from './ProductsScreen';
@@ -32,6 +33,9 @@ import Client from './Client';
 import ClientProducts from './ClientProducts';
 import ClientPay from './ClientPay';
 import ClientInventory from './ClientInventory';
+import CloseInventory from './CloseInventory';
+import AsyncStorage from '@react-native-community/async-storage';
+import {useState,useEffect} from 'react';
 
 
 
@@ -40,11 +44,15 @@ const Drawer = createDrawerNavigator();
 
 
 const NavigationDrawerStructure = (props)=> {
+
+
   //Structure for the navigatin Drawer
   const toggleDrawer = () => {
     //Props to open/close the drawer
     props.navigationProps.toggleDrawer();
   };
+
+  
 
   return (
     <View style={{ flexDirection: 'row' }}>
@@ -63,18 +71,21 @@ const NavigationDrawerStructure = (props)=> {
   );
 }
 
-function HomeScreenStack({ navigation }) {
-  const config = {
-    animation: 'spring',
-    config: {
-      stiffness: 1000,
-      damping: 50,
-      mass: 3,
-      overshootClamping: false,
-      restDisplacementThreshold: 0.01,
-      restSpeedThreshold: 0.01,
-    },
-  };
+const  Main =()=> {
+
+  const [check,setCheck] = useState(false);
+  AsyncStorage.getItem('InvoiceP').then(
+    (value) =>
+    {if(value === null){
+      setCheck(false)
+    }else{
+      setCheck(true)
+    }}
+  );
+
+const HomeScreenStack =({ navigation })=> {
+ 
+
   return (
       <Stack.Navigator 
       screenOptions={{
@@ -82,7 +93,9 @@ function HomeScreenStack({ navigation }) {
         
         cardStyleInterpolator:CardStyleInterpolators.forHorizontalIOS
       }}
-      initialRouteName="HomeScreen" >
+      // initialRouteName="ClientScreen"
+      initialRouteName= {check? "InventoryScreen" : "HomeScreen"}
+      >
         <Stack.Screen
           name="HomeScreen"
           component={HomeScreen}
@@ -169,6 +182,13 @@ function HomeScreenStack({ navigation }) {
           headerShown:false //Set Header Title
           
         }}/>
+         <Stack.Screen
+        name="CloseInventory"
+        component={CloseInventory}
+        options={{
+          headerShown:false //Set Header Title
+          
+        }}/>
         <Stack.Screen
         name="ViewScreen"
         component={ViewScreen}
@@ -177,6 +197,13 @@ function HomeScreenStack({ navigation }) {
           headerShown:false,
         }}
         />
+        <Stack.Screen
+        name="Refresh"
+        component={Refresh}
+        options={{
+          headerShown:false //Set Header Title
+          
+        }}/>
         <Stack.Screen
         name="App"
         component={App}
@@ -188,44 +215,8 @@ function HomeScreenStack({ navigation }) {
   );
 }
 
-function ClientScreenStack({ navigation }) {
-  return (
-    <Stack.Navigator
-      initialRouteName="ClientScreen"
-      screenOptions={{
-        headerLeft: ()=>
-          <NavigationDrawerStructure
-            navigationProps={navigation}
-          />,
-        headerStyle: {
-          backgroundColor: '#f4511e', //Set Header color
-        },
-        headerTintColor: '#fff', //Set Header text color
-        headerTitleStyle: {
-          fontWeight: 'bold', //Set Header text style
-        }
-      }}>
-      <Stack.Screen
-        name="ClientScreen"
-        component={ClientScreen}
-        options={{
-          title: 'Second Page', //Set Header Title
-          
-        }}/>
-         <Stack.Screen
-        name="ReceiptScreen"
-        component={ReceiptScreen}
-        options={{
-          title: 'Second Page', //Set Header Title
-          
-        }}/>
-         
-      
-    </Stack.Navigator>
-  );
-}
 
-function Main() {
+
   return (
     <NavigationContainer independent={true}>
       <Drawer.Navigator

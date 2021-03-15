@@ -1,10 +1,8 @@
 // React Native Navigation Drawer
 // https://aboutreact.com/react-native-navigation-drawer/
 import * as React from 'react';
-
 import styles from "../stylesheet/style";
 import { SwipeListView } from 'react-native-swipe-list-view';
-
 import Dialog from "react-native-dialog";
 import AsyncStorage from '@react-native-community/async-storage';
 import SearchableDropdown from 'react-native-searchable-dropdown';
@@ -16,6 +14,11 @@ import {useState,useEffect} from 'react';
 import Feather from 'react-native-vector-icons/Feather';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 
+import realm,{
+  setSync,
+  updateSync,
+  updateClient
+}from '../Database';
 
 
 
@@ -40,11 +43,15 @@ import {
 
 const width = Dimensions.get('window').width;
 
-const Home=({navigation})=>{
+const Home=({navigation,route})=>{
+
+  const {validateInput} = route.params;
   const [serverData, setServerData] = useState([]);
     const [value,setValue]=useState();
-    const [number,setNumber]=useState();
-    const [name,setName]=useState();
+    const [disable,setDisable]=useState(false);
+    const [id,setId]=useState();
+    const [number,setNumber]=useState("000");
+    const [name,setName]=useState("one_time_customer");
     const [slid,setSlid]=useState();
     const [spinner,setSpinner]=useState();
     const [token,setToken]=useState();
@@ -52,12 +59,13 @@ const Home=({navigation})=>{
     const [total,setTotal]=useState();
     const [owe,setOwe]=useState();
     const [amountD,setAmountD]=useState();
+    const [invoiceP,setInvoiceP]=useState([]);
 
-
-    const [invoice,setInvoice]=useState();
+    const [invoice,setInvoice]=useState([]);
     const [amountP,setAmountP]=useState();
     const [products,setProducts]=useState([]);
     const [clients,setClients]=useState([]);
+    const [index,setIndex]=useState([]);
    
     const showToast = (message) => {
       ToastAndroid.show(message, ToastAndroid.SHORT);
@@ -65,14 +73,33 @@ const Home=({navigation})=>{
     
 
       useEffect(() => {
+        AsyncStorage.getItem('SL').then(
+          (value) =>
+          {setValue(value)
+          console.log(value)
+          }
+        );
+        AsyncStorage.getItem('SLid').then(
+          (value) =>
+          {setSlid(value)
+          console.log(value)
+          }
+        );
         AsyncStorage.getItem('Token').then(
           (value) =>
           {setToken(value)
-          console.log(value)}
+          console.log(value)
+          }
+        );
+        AsyncStorage.getItem('UserId').then(
+          (value) =>
+          {setId(value)
+          console.log(value)
+          }
         );
         AsyncStorage.getItem('Invoice').then(
           (value) =>
-          {setInvoice(value)
+          {setInvoice(JSON.parse(value))
           console.log(value)}
         );
         AsyncStorage.getItem('Total').then(
@@ -102,14 +129,24 @@ const Home=({navigation})=>{
           (value) =>
           {
             setProducts(JSON.parse(value))
+          console.log(value)
+        }
+        );
+        AsyncStorage.getItem('InvoiceP').then(
+          (value) =>
+          {
+            setInvoiceP(JSON.parse(value))
           // console.log(value)
         }
         );
-        AsyncStorage.getItem('Clients').then(
-          (value) =>{}
-          // {setProducts(JSON.parse(value))
+        AsyncStorage.getItem('Index').then(
+          (value) =>
+          {
+            setIndex(JSON.parse(value))
           // console.log(value)
+        }
         );
+       
         AsyncStorage.getItem('Locations').then(
           (value) =>
           {
@@ -121,26 +158,179 @@ const Home=({navigation})=>{
        
       }, []);
 
-      const generateData=()=>{
-
+      const validator=()=>{
         setSpinner(true)
-        // console.log(name + number)
-        // AsyncStorage.clear();
-
-        // get client info
+        console.log(validateInput)
 
       
-        // get refid
-       
-        var result           = '';
-        var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        var charactersLength = characters.length;
-        for ( var i = 0; i < 15; i++ ) {
-           result += characters.charAt(Math.floor(Math.random() * charactersLength));
-        }
+        if(validateInput == true){
 
-      setRef(result)
+          if(number !== "000" && name !== "one_time_customer" && value !== undefined){
+            generateData();
+            //showToast
+          }else{
+            setDisable(false)
+            setSpinner(false)
+            showToast("All fields required")
+            
+          }
+
+        }else{
+          if(value == undefined){
+            setDisable(false)
+            showToast("Location field required")
+            setSpinner(false);
+          }else{
+            if(number == '000' && name =="one_time_customer"){
+              generateData()
+
+            }else{
+              if(!number == '000' && name == 'one_time_customer'){
+                setDisable(false)
+                setSpinner(false);
+                showToast("Please complete the form")
+
+              }else{
+                generateData();
+              }
+
+            }
+          }
+          //process
+        }
+      }
+
+      const generateData=()=>{
+      console.log("im generating")
+
+      updateClient(number,name,owe,parseInt(amountD))
+
+
+          
+
+        // AsyncStorage.getItem('Clients')
+        // .then((res) => {
+
+        //   console.log(res)
+
+        //   //exchange the phone and name
+        //   var o = [];
+        //    o = res ? JSON.parse(res) : [];
+        //    if(o.length == 0){
+        //     o.push(
+        //       {
+        //         phone:number ,
+        //         name:name,
+        //         owe:owe,
+        //         amountD:amountD
+        //       }
+
+        //     )
+        //     console.log("empty array")
+        //     console.log(o)
+
+        //    }else{
+        //     var itemsProcessed = 0;
+        //     var edit = false;
+
+        //     console.log('hi')
+
+        //      o.forEach(function(item,index,array){
+        //        console.log('Im in')
+              
+        //        if(item.phone == number){
+        //          console.log('Im changing number')
+              
+        //          edit = true
+        //          console.log(edit)
+              
+        //         o[index].amountD =  JSON.parse(o[index].amountD) + JSON.parse(amountD);
+        //         o[index].name =  name;
+
+        //         if(Math.sign(o[index].amountD)== -1){
+        //           o[index].owe = "true"
+        //         }else{
+        //           if(Math.sign(o[index].amountD)== 0){
+        //             o[index].owe = "false"
+        //           }else{
+        //             o[index].owe = "false"
+        //           }
+        //         }
+        //        }
+
+        //        itemsProcessed++;
+        //        console.log(itemsProcessed)
+              
+        //         if(itemsProcessed === array.length) {
+        //           console.log('we are done with the array')
+              
+        //           if(edit == false){
+        //             console.log('lets push')
+        //             o.push(
+        //               {phone:number ,
+        //                 name:name,
+        //                 owe:owe,
+        //                 amountD:amountD
+        //               }
+        //             )
+        //            }
+        //         }
+
+        //      })
+
+        //    }
+          
+        //   AsyncStorage.setItem('Clients', JSON.stringify(o));
+        // });
+
+
      
+
+         AsyncStorage.getItem('Sales').then(
+          (value) =>
+          {
+            const get = parseInt(value) + parseInt(total)
+            AsyncStorage.setItem('Sales', JSON.stringify(get) );
+
+            
+          }
+        )
+
+        AsyncStorage.getItem('Cash').then(
+          (value) =>
+          {
+            const get = parseInt(value) + parseInt(amountP)
+            AsyncStorage.setItem('Cash', JSON.stringify(get) );
+
+            
+          }
+        )
+
+
+        // console.log(index)
+        
+        const newData = invoiceP.map(item=>{
+
+
+          index.forEach(function(test){
+            if(test.product_id == item.product_id)
+            {
+              item.quantity = parseInt(item.quantity) - parseInt(test.quantityOrdered);
+
+              // console.log(item)
+              return item;
+            }
+
+          })
+
+          return item;
+
+        })
+
+        AsyncStorage.setItem('InvoiceP', JSON.stringify(newData));
+
+  
+   
 
       //  get transaction time
         var time = Math.floor(Date.now() / 1000)
@@ -151,27 +341,44 @@ const Home=({navigation})=>{
 
         const todaysDate = date + '-' + month + '-' + year;//format: dd-mm-yyyy;
 
+        var uniqueId = id + "-" + time;
        
-        //get all the async
-        
-        AsyncStorage.getItem('Clients')
-        .then((res) => {
-          var o = [];
-           o = res ? JSON.parse(res) : [];
-           o.push(
-            {phone:number ,
-              name:name,
-              date:todaysDate,
-              owe:owe,
-              amountD:amountD
-            }
-          )
-          AsyncStorage.setItem('Clients', JSON.stringify(o));
-        });
+        // get all the async
+ 
+        setSync(uniqueId,invoice,parseInt(slid),JSON.stringify(time),parseInt(amountP),total,owe,false,todaysDate,{phone:number,name:name},products)
 
+
+        // AsyncStorage.getItem('Sync')
+        // .then((res) => {
+        //   var o = [];
+        //    o = res ? JSON.parse(res) : [];
+
+        //    var length = o.length-1;
+        //    o.push(
+        //     {
+        //       id:length,
+        //       ref:uniqueId,
+        //       invoice_no:invoice,
+        //       sales_location_id:parseInt(slid),
+        //       performed_at:time,
+        //       amount_paid:parseInt(amountP),
+        //       total:total,
+        //       owe:owe,
+        //       synced:false,
+        //       date:todaysDate,
+        //       client:{
+        //         phone:number,
+        //         name:name
+        //       },
+        //       products:products
+        //     }
+        //   )
+        //   AsyncStorage.setItem('Sync', JSON.stringify(o));
+        // });
+  
 
         const data =  {
-          "ref":result,
+          "ref":uniqueId,
           "invoice_no": invoice,
           "sales_location_id":parseInt(slid),
           "performed_at":JSON.stringify(time),
@@ -194,75 +401,20 @@ const Home=({navigation})=>{
         })
        .then(response => response.json())
        .then(data => {
+         console.log(data)
+
           if(data.success==true){
 
-            AsyncStorage.getItem('Sync')
-            .then((res) => {
-              console.log('hi' +res)
-              var o = [];
-               o = res ? JSON.parse(res) : [];
-    
-               var length = o.length-1;
-               o.push(
-                {
-                  id:length,
-                  ref:result,
-                  invoice_no:invoice,
-                  sales_location_id:parseInt(slid),
-                  performed_at:time,
-                  amount_paid:parseInt(amountP),
-                  total:total,
-                  owe:owe,
-                  synced:true,
-                  date:todaysDate,
-                  client:{
-                    phone:number,
-                    name:name
-                  },
-                  products:products
-                }
-              )
-              console.log(o)
-              AsyncStorage.setItem('Sync', JSON.stringify(o));
-            });
-            
-            showToast(result + "synced succesfully")
-          
+            updateSync(uniqueId)
+            showToast(uniqueId+ "synced succesfully")
+
           }
          
       
         })
         .catch((error) => {
           
-          AsyncStorage.getItem('Sync')
-          .then((res) => {
-            console.log('hi' +res)
-            var o = [];
-             o = res ? JSON.parse(res) : [];
-  
-             var length = o.length-1;
-             o.push(
-              {
-                id:length,
-                ref:result,
-                invoice_no:invoice,
-                sales_location_id:parseInt(slid),
-                performed_at:time,
-                amount_paid:parseInt(amountP),
-                total:total,
-                owe:owe,
-                synced:false,
-                date:todaysDate,
-                client:{
-                  phone:number,
-                  name:name
-                },
-                products:products
-              }
-            )
-            console.log(o)
-            AsyncStorage.setItem('Sync', JSON.stringify(o));
-          });
+        
           
         });
 
@@ -272,12 +424,15 @@ const Home=({navigation})=>{
 
         // ======================
        setSpinner(false);
-        navigation.navigate("ReceiptScreen",{
-          tDate : todaysDate,
-          tname: name,
-          tphone: number,
-          tLocation: value
-        });
+  
+
+      navigation.navigate("ReceiptScreen",{
+        tDate : todaysDate,
+        tname: name,
+        tphone: number,
+        tLocation: value
+      })
+       
 
 
       }
@@ -289,6 +444,7 @@ const Home=({navigation})=>{
                 backgroundColor={'white'}
                 barStyle={"dark-content"}
                 />
+               
            <ScrollView
            keyboardShouldPersistTaps='always'
            style={{height:'90%',width:'90%',alignSelf:'center'}}>
@@ -304,11 +460,11 @@ const Home=({navigation})=>{
                         <SearchableDropdown
                           onTextChange={(text) => console.log(text)}
                           // Change listner on the searchable input
-                          onItemSelect={(item) => { setValue(item.name),setSlid(item.sales_location_id),console.log(item.sales_location_id)}}
+                          onItemSelect={(item) => { setValue(item.name),setSlid(item.sales_location_id),AsyncStorage.setItem('SL',item.name),AsyncStorage.setItem('SLid',JSON.stringify(item.sales_location_id))}}
                           // Called after the selection from the dropdown
                           containerStyle={{width:'100%',marginTop:"3%"}}
                           // Suggestion container style
-                          // defaultValue={value}
+                          defaultValue={value}
                           resetValue={false}
                           textInputStyle={{
                             fontFamily:'Quicksand-Regular',
@@ -366,27 +522,27 @@ const Home=({navigation})=>{
                         />
 
               </View>
-              
-            <View style={{marginTop:"10%"}}>
-              <Text style={{fontSize:13,color:'black',fontFamily:'Quicksand-Regular'}}>Phone number</Text>
+              <View style={{marginTop:"10%"}}>
+                        <Text style={{fontSize:13,color:'black',fontFamily:'Quicksand-Regular'}}>Phone</Text>
 
-              <TextInput
-              onChangeText={text => setNumber(text)}
-              value={number}
-              // Making the Under line Transparent.
-              underlineColorAndroid='transparent'
-              keyboardType="numeric"
-              style={{
-                fontFamily:'Quicksand-Regular',paddingLeft:15,alignSelf:'center',height: 50,marginTop:'3%',width:"100%",borderWidth:1,borderColor:'#E0E0E0',fontSize:13,color:'black',width:'100%',borderRadius:10
-              }}
-              />
-          </View>
+                        <TextInput
+                          onChangeText={text => setNumber(text)}
+                          // value={number}
+                          // Making the Under line Transparent.
+                          underlineColorAndroid='transparent'
+                          keyboardType="numeric"
+                          style={{
+                            fontFamily:'Quicksand-Regular',paddingLeft:15,alignSelf:'center',height: 50,marginTop:'3%',width:"100%",borderWidth:1,borderColor:'#E0E0E0',fontSize:13,color:'black',width:'100%',borderRadius:10
+                          }}
+                          />
+              </View>
+              
           <View style={{marginTop:"10%"}}>
               <Text style={{fontSize:13,color:'black',fontFamily:'Quicksand-Regular'}}>Client's name</Text>
 
               <TextInput
               onChangeText={text => setName(text)}
-              value={name}
+              // value={name}
               // Making the Under line Transparent.
               underlineColorAndroid='transparent'
               // keyboardType="numeric"
@@ -401,7 +557,7 @@ const Home=({navigation})=>{
             
             <TouchableOpacity
                 style={[styles.UserGreet,{borderRadius:10,alignSelf:'center',flexDirection:'row',height:40,width:"90%",backgroundColor:'#4E3CAF'}]}
-                onPress={()=>generateData()}
+                onPress={()=>{setDisable(true),validator()}}
                                 >
                           {spinner?
                                 <ActivityIndicator

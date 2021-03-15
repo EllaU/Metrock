@@ -36,7 +36,8 @@ import {
   TextInput,
   Image,
   Button,
-  TouchableOpacity
+  TouchableOpacity,
+  ToastAndroid
 } from 'react-native';
 
 
@@ -47,11 +48,14 @@ const HomeScreen=({navigation,route})=>{
  
   const[value,setValue]=useState(0);
   const [itemId,setItemId]=useState();
+ 
+
   
   const refRBSheet = useRef();
   const [searchText,setSearchText]=useState();
 
   const {getProducts}= route.params;
+
   useEffect(() => {  
 
 }, []);
@@ -63,6 +67,9 @@ const HomeScreen=({navigation,route})=>{
     setVisible(true);
   };
 
+  const showToast = (message) => {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  };
 
 
   const handleCancel = () => {
@@ -119,19 +126,23 @@ const handleEditItem =()=>{
 
   const newData = data.map(item=>{
     if(item.product_id == itemId){
-      
-      item.quantity = item.quantity - value;
-      item.quantityOrdered = value;
-      console.log(item)
-      return item;
+
+      if(item.quantity - value < 0){
+        showToast("Insufficient stock available")
+        //show toast
+      }else{
+           // item.quantity = item.quantity - value;
+        item.quantityOrdered = value;
+        console.log(item)
+        return item;
+      }
+   
     }
 
     return item;
   })
   setdata(newData);
-  // AsyncStorage.setItem('InvoiceP',JSON.stringify(newData))
-
-  // console.log(filteredData)
+ 
   setisRender(!isRender);
 
 }
@@ -147,10 +158,15 @@ const navigate =()=>{
  const picked= data.filter(x =>
     x.quantityOrdered > 0 //not quantity but new quantity prop
   );
+
+  AsyncStorage.setItem('Index',JSON.stringify(picked))
+
   // console.log(picked)
   navigation.navigate('CartScreen', {
     myCart:picked,
   });
+
+
 
 }
 
@@ -158,6 +174,7 @@ const renderItem = ({ item,index }) => {
 
   return (
     <TouchableOpacity
+    disabled={item.quantity == 0? true :false}
     onPress ={()=>{setId(item.product_id)}}
     //  onPress={() => etId} 
      
@@ -196,6 +213,15 @@ const renderItem = ({ item,index }) => {
     </View>
 
     </View>
+
+     {
+       item.quantity == 0 ?
+       <View style={{backgroundColor:'rgba(0,0,0,0.3)',top:0,left:0,right:0,bottom:0,position:'absolute'}}>
+
+       </View>
+       :
+       undefined
+     }
 
   </TouchableOpacity>
   );

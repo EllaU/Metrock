@@ -41,7 +41,8 @@ import {
   TextInput,
   Image,
   Button,
-  TouchableOpacity
+  TouchableOpacity,
+  BackHandler
 } from 'react-native';
 
 
@@ -54,6 +55,12 @@ const HomeScreen=({navigation})=>{
   const[invoice,setInvoice]=useState()
   const [products,setProducts]=useState([]);
 
+  useEffect(()=>{
+    
+    BackHandler.addEventListener('hardwareBackPress', () => true)
+    return () =>
+      BackHandler.removeEventListener('hardwareBackPress', () => true)
+  },[]);
   AsyncStorage.getItem('Token').then(
     (value) =>
     setToken(value)
@@ -68,17 +75,11 @@ const HomeScreen=({navigation})=>{
     setError(undefined);
   };
 
-  const handleDelete = () => {
-    // The user has pressed the "Delete" button, so here you can do your own logic.
-    // ...Your logic
-    setVisible(false);
-  };
 
   const loadInventory=()=>{
     setLoad(true);
-    
     setError();
-    AsyncStorage.setItem('Invoice', invoice);
+  
 
 
     fetch("http://mobile.metrockenterprises.ng/api/v1/invoices/fetch/"+ invoice, {
@@ -90,35 +91,33 @@ const HomeScreen=({navigation})=>{
     })
    .then(response => response.json())
    .then(data => {
-     console.log(data)
+
       if(data.success == true){
-        console.log(data)
-        AsyncStorage.setItem('InvoiceP', JSON.stringify(data.data));
+        var o = [];
+        o.push(data.data.invoice_no)
+        AsyncStorage.setItem('Invoice', JSON.stringify(o));
+
+        AsyncStorage.setItem('Sales',JSON.stringify(0));
+        AsyncStorage.setItem('Cash',JSON.stringify(0));
+
+        AsyncStorage.setItem('InvoiceP', JSON.stringify(data.data.products));
         setSuccess(true);
       }else{
         setLoad(false);
         setError(data.message);
 
-      }
-      // setSuccess(true);
-      
+      }      
     })
     .catch((error) => {
       setError("Please check your internet connection")
       setLoad(false);
-      console.log(error);
     });
-
-
 
   }
 
   const goToInventory=()=>{
-    console.log(products);
     setVisible(false);
-    navigation.navigate('InventoryScreen', {
-      Products:products,
-    });
+    navigation.navigate('InventoryScreen');
   }
     
   const NavigationDrawerStructure = (props)=> {
@@ -133,7 +132,7 @@ const HomeScreen=({navigation})=>{
     <View style={{ flexDirection: 'row' }}>
       <TouchableOpacity onPress={()=> toggleDrawer()}>
         {/*Donute Button Image */}
-        <Feather name="align-left" size={20} color={"rgba(255,2555,255,1.0)"} />
+        <Feather name="align-left" size={20} color={"grey"} />
 
       </TouchableOpacity>
     </View>
@@ -143,118 +142,57 @@ const HomeScreen=({navigation})=>{
   return (
     <>
     <SafeAreaView style={{backgroundColor:'white',height:'100%' }}>
-         <StatusBar translucent={true}
-              backgroundColor={'#4e3caf'}
+         <StatusBar 
+            barStyle={'dark-content'}
+              backgroundColor={'white'}
              />
+                     
+          <View style={{height:hp("100%"),backgroundColor:'white',width:"100%",borderBottomLeftRadius:40,borderBottomRightRadius:40}}>
+
+            <View style={{height:'100%',alignItems:'center',}}>
+              <Image
+              source={require('../assets/logo.png')}
+              style={{resizeMode: 'contain',height:"20%",width:"20%",marginTop:'5%'}}
+
+                />
+
+              <Image
+              source={require('../assets/truck.jpg')}
+              style={{resizeMode: 'contain',height:"45%",width:"80%"}}
+
+                />
+               
+              <Text style={{fontFamily:"Quicksand-SemiBold",color:'#4e3caf',fontSize:20,marginTop:"3%"}}>Let's make some money</Text> 
+              <Text style={{fontFamily:"Quicksand-Regular",color:'grey',fontSize:11,marginTop:"5%",width:'65%',textAlign:'center'}}>
+              "Life without endeavor is like entering a jewel mine  
+              </Text> 
+              <Text style={{fontFamily:"Quicksand-Regular",color:'grey',fontSize:11,width:'70%',textAlign:'center'}}>
+               and coming out with empty hands." 
+              </Text> 
+
+                <Text style={{fontFamily:"Quicksand-Regular",color:'grey',fontSize:11,marginTop:"1%",width:'70%',textAlign:'center'}}>
+                  -Japanese proverb
+                </Text> 
+              {/* <Text style={{fontFamily:"Quicksand-Bold",color:'grey',fontSize:17,marginTop:"2%"}}>N50,000</Text>  */}
              
-        <ScrollView style={{flexGrow:1,height:'100%'}}>
-        
-        <View style={{height:hp("40%"),backgroundColor:'#4e3caf',width:"100%",borderBottomLeftRadius:40,borderBottomRightRadius:40}}>
+              <TouchableOpacity
+                style={[styles.UserGreet,{marginTop:20,borderRadius:10,alignSelf:'center',flexDirection:'row',height:40,width:"40%",backgroundColor:'#4E3CAF'}]}
+                onPress={()=>showDialog()}
+                                  >
+                  <Text style={{fontSize:13,color:'white',fontFamily:'Quicksand-Bold'}}>Load Inventory</Text>
 
-          <View style={{height:'100%',alignItems:'center',paddingTop:'13%'}}>
-            <Image
-            source={require('../assets/logo.png')}
-            style={{resizeMode: 'contain',height:"25%",width:"25%"}}
 
-              />
-            <Text style={{fontFamily:"Quicksand-SemiBold",color:'white',fontSize:20,marginTop:"4%"}}>Let's start the day</Text> 
-            <Text style={{fontFamily:"Quicksand-Regular",color:'white',fontSize:11,marginTop:"5%"}}>Total outstanding payments</Text> 
-            <Text style={{fontFamily:"Quicksand-Bold",color:'white',fontSize:17,marginTop:"2%"}}>N50,000</Text> 
-          </View>
-          <View style={{position:'absolute',marginTop:'20%',marginLeft:'5%',}}>
-          <NavigationDrawerStructure navigationProps={navigation} />
+              </TouchableOpacity>
+            </View>
+            <View style={{position:'absolute',marginTop:'20%',marginLeft:'5%',}}>
+              <NavigationDrawerStructure navigationProps={navigation} />
 
-          </View> 
+            </View> 
 
 
           </View>
-          <View >
-         
+     
           
-          <TouchableOpacity
-            style={[styles.UserGreet,{marginTop:15,borderRadius:10,alignSelf:'center',flexDirection:'row',height:40,width:"90%",backgroundColor:'#4E3CAF'}]}
-            onPress={()=>showDialog()}
-                              >
-              <Text style={{fontSize:13,color:'white',fontFamily:'Quicksand-Bold'}}>Load Inventory</Text>
-
-
-          </TouchableOpacity>
-          <View style={{width:'90%',alignSelf:'center'}}>
-          <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13,marginTop:17}}>Outstanding Payments</Text> 
-
-            <TouchableOpacity onPress={()=>navigation.navigate("InventoryScreen")} style={{height:70,width:'100%',backgroundColor:'#F9F9F9',justifyContent:'center',marginTop:15}}>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%'}}>
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>Okemati Lanre</Text> 
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>N30,000</Text> 
-              </View>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%',marginTop:'1%'}}>
-                <Text style={{fontFamily:"Quicksand-Regular",color:'#828282',fontSize:11}}>24/10/2020</Text> 
-                <Text style={{fontFamily:"Quicksand-Regular",color:'red',fontSize:11}}>Remaining Balance</Text> 
-              </View>
-
-            </TouchableOpacity>
-            <TouchableOpacity onPress={()=>AsyncStorage.clear()}style={{height:70,width:'100%',backgroundColor:'#F9F9F9',justifyContent:'center',marginTop:15}}>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%'}}>
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>Okemati Lanre</Text> 
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>N30,000</Text> 
-              </View>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%',marginTop:'1%'}}>
-                <Text style={{fontFamily:"Quicksand-Regular",color:'#828282',fontSize:11}}>24/10/2020</Text> 
-                <Text style={{fontFamily:"Quicksand-Regular",color:'red',fontSize:11}}>Remaining Balance</Text> 
-              </View>
-
-            </TouchableOpacity>
-            <View style={{height:70,width:'100%',backgroundColor:'#F9F9F9',justifyContent:'center',marginTop:15}}>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%'}}>
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>Okemati Lanre</Text> 
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>N30,000</Text> 
-              </View>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%',marginTop:'1%'}}>
-                <Text style={{fontFamily:"Quicksand-Regular",color:'#828282',fontSize:11}}>24/10/2020</Text> 
-                <Text style={{fontFamily:"Quicksand-Regular",color:'red',fontSize:11}}>Remaining Balance</Text> 
-              </View>
-
-            </View>
-            <View style={{height:70,width:'100%',backgroundColor:'#F9F9F9',justifyContent:'center',marginTop:15}}>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%'}}>
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>Okemati Lanre</Text> 
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>N30,000</Text> 
-              </View>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%',marginTop:'1%'}}>
-                <Text style={{fontFamily:"Quicksand-Regular",color:'#828282',fontSize:11}}>24/10/2020</Text> 
-                <Text style={{fontFamily:"Quicksand-Regular",color:'red',fontSize:11}}>Remaining Balance</Text> 
-              </View>
-
-            </View>
-            <View style={{height:70,width:'100%',backgroundColor:'#F9F9F9',justifyContent:'center',marginTop:15}}>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%'}}>
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>Okemati Lanre</Text> 
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>N30,000</Text> 
-              </View>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%',marginTop:'1%'}}>
-                <Text style={{fontFamily:"Quicksand-Regular",color:'#828282',fontSize:11}}>24/10/2020</Text> 
-                <Text style={{fontFamily:"Quicksand-Regular",color:'red',fontSize:11}}>Remaining Balance</Text> 
-              </View>
-
-            </View>
-            <View style={{height:70,width:'100%',backgroundColor:'#F9F9F9',justifyContent:'center',marginTop:15}}>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%'}}>
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>Okemati Lanre</Text> 
-                <Text style={{fontFamily:"Quicksand-SemiBold",color:'black',fontSize:13}}>N30,000</Text> 
-              </View>
-              <View style={{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'5%',marginTop:'1%'}}>
-                <Text style={{fontFamily:"Quicksand-Regular",color:'#828282',fontSize:11}}>24/10/2020</Text> 
-                <Text style={{fontFamily:"Quicksand-Regular",color:'red',fontSize:11}}>Remaining Balance</Text> 
-              </View>
-
-            </View>
-          </View>
-
-
-          </View>
-          <View style={{height:100}}>
-
-          </View>
           <Dialog.Container visible={visible}
                   onBackdropPress={handleCancel}
                   contentStyle={{padding:0,paddingBottom:40}}
@@ -298,7 +236,7 @@ const HomeScreen=({navigation})=>{
                       <Feather name="search" size={20} color={"#E0E0E0"} />
                     </TouchableOpacity>
                     :
-                    <SkypeIndicator  color='#E0E0E0' size={20} />
+                    <SkypeIndicator  color='grey' size={20} />
                     
                      }
                   </View>
@@ -351,7 +289,7 @@ const HomeScreen=({navigation})=>{
 
         </Dialog.Container>
 
-        </ScrollView>
+
       
      
      

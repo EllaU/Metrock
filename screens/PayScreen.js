@@ -43,8 +43,10 @@ const width = Dimensions.get('window').width;
 const Home=({navigation,route})=>{
     const [visible,setVisible]=useState(false);
     const[value,setValue]=useState("");
-    const[owe,setOwe]=useState();
+    const[owe,setOwe]=useState(0);
+    const[validate,setValidate]=useState(false);
     const[status,setStatus]=useState();
+    global.validate = true;
 
     const {sum}=route.params;
 
@@ -57,30 +59,37 @@ const Home=({navigation,route})=>{
       };
     
     const handleCal=()=>{
-        const a = sum - value;
+        const a = value - sum;
         // console.log(a);
-        if(a > 0){
+        if(a < 0){
+            //in negative value..client under paid
+
             setOwe(a);
             AsyncStorage.setItem('Owe',JSON.stringify(true))
+            AsyncStorage.setItem('AmountP',value);
+            AsyncStorage.setItem('AmountD',JSON.stringify(a))
 
             setStatus('owe')
             showDialog();
         }else{
-            if(a<0){
-                const positive = Math.abs(a)
-                setOwe(positive);
-                AsyncStorage.setItem('Owe',JSON.stringify(false))
+            if(a > 0){
 
+                //in positive value ..client over paid
+
+                // const positive = Math.abs(a)
+                setOwe(a);
+                AsyncStorage.setItem('Owe',JSON.stringify(false))
+                AsyncStorage.setItem('AmountP',value);
+                AsyncStorage.setItem('AmountD',JSON.stringify(a))
                 setStatus('balance')
                 showDialog();
             }else{
-                if(a==0){
-                    setOwe(a);
-                    AsyncStorage.setItem('Owe',JSON.stringify(false))
-
-                    setStatus('paid');
-                    showDialog();
-                }
+                global.validate = false;
+                AsyncStorage.setItem('Owe',JSON.stringify(false))
+                AsyncStorage.setItem('AmountP',value);
+                AsyncStorage.setItem('AmountD',JSON.stringify(a))
+                setStatus('paid');
+                navigate();
             }
         }
 
@@ -100,11 +109,14 @@ const Home=({navigation,route})=>{
       };
 
       const navigate=()=>{
-        AsyncStorage.setItem('AmountP',value);
-        AsyncStorage.setItem('AmountD',JSON.stringify(owe))
+      
 
         handleCancel();
-        navigation.navigate('ClientScreen');
+
+        console.log("hi" + validate)
+        navigation.navigate('ClientScreen',{
+            validateInput:global.validate
+        });
       }
   
     return (
@@ -278,7 +290,7 @@ const Home=({navigation,route})=>{
                     <View style={{width:'60%',alignSelf:'center',marginTop:1}}>
 
                         <Text style={{fontFamily:'Quicksand-Bold',color:'black',textAlign:'center',fontSize:13,}}>
-                        N{owe}
+                        N{Math.abs(parseInt(owe))}
                         </Text>
 
                     </View>

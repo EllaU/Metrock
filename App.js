@@ -17,6 +17,17 @@ import {
 import { createStackNavigator } from '@react-navigation/stack';
 import {useState,useEffect} from 'react';
 
+import {
+  BallIndicator,
+  BarIndicator,
+  DotIndicator,
+  MaterialIndicator,
+  PacmanIndicator,
+  PulseIndicator,
+  SkypeIndicator,
+  UIActivityIndicator,
+  WaveIndicator,
+} from 'react-native-indicators';
 
 import Welcome from './screens/Welcome';
 // import all the components we are going to use
@@ -71,21 +82,21 @@ function App({navigation}){
     }, []);
   
     return (
-      <View style={[styles.container,{backgroundColor:"white"}]}>
+      <View style={[styles.container,{backgroundColor:"white",alignItems:'center',justifyContent:'center'}]}>
         <StatusBar translucent={true}
               backgroundColor={'white'}
              />
-         <Image
+             <View style={{width:'100%',height:'30%'}}>
+             <Image
             source={require('./assets/sLogo.png')}
-            style={{resizeMode: 'contain',height:"30%",width:"30%"}}
+            style={{resizeMode: 'contain',height:"30%",width:"30%",alignSelf:'center'}}
 
           />
-        <ActivityIndicator
-          animating={animating}
-          color="#4E3CAF"
-          size="large"
-          style={styles.activityIndicator}
-        />
+           <BallIndicator color='#4e3caf' size={30} />
+
+             </View>
+       
+       
         
       </View>
     );
@@ -138,16 +149,18 @@ function App({navigation}){
       const {UserName} = userName;
       const {UserPassword} = userPassword;
 
+      console.log(UserName)
+      console.log(UserPassword)
       fetch('http://mobile.metrockenterprises.ng/api/v1/login',
       {
         method: "POST",
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body:JSON.stringify({
           username: UserName,
-          password: UserPassword,
+          password: UserPassword
         })
      }
      )
@@ -155,6 +168,7 @@ function App({navigation}){
      .then(data => {
 
       console.log('got data from login')
+      console.log(data)
       
         if(data.success==false){
           showDialog();
@@ -196,6 +210,8 @@ function App({navigation}){
                 
               })
               .catch((error) => {
+                setSpinner(false)
+                setConnect(true)
                 console.log('no location' + error);
               });
             }
@@ -233,8 +249,8 @@ function App({navigation}){
               style={{resizeMode: 'contain',height:"40%",width:"40%"}}
 
             />
-            <Text style={{fontFamily:"Quicksand-Bold",color:'white',fontSize:20,marginTop:15}}>Some Welcome Message</Text> 
-            <Text style={{fontFamily:"Quicksand-Regular",color:'white',fontSize:11,marginTop:7}}>A better way to manage your sales.</Text> 
+            <Text style={{width:'60%',fontFamily:"Quicksand-SemiBold",color:'white',fontSize:20,marginTop:15,textAlign:'center'}}>Culturing Excellence in Baking Business</Text> 
+            {/* <Text style={{fontFamily:"Quicksand-Regular",color:'white',fontSize:11,marginTop:7}}>A better way to manage your sales.</Text>  */}
           </View>
           <View style={{height:'55%',alignItems:'center',justifyContent:'center',bottom:0}}>
             <View style={{height:"10%"}}></View>

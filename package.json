@@ -39,7 +39,9 @@
     "react-native-swipe-list-view": "^3.2.6",
     "react-native-swipeout": "^2.3.6",
     "react-native-vector-icons": "^8.0.0",
-    "react-navigation-transitions": "^1.0.12"
+    "react-navigation": "^4.4.4",
+    "react-navigation-transitions": "^1.0.12",
+    "realm": "^10.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.17",

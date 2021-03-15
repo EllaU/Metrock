@@ -48,6 +48,7 @@ export default class Home extends React.Component{
         total:0,
         data: [{}],
         render:false,
+        showButton:false,
     }
 
 }
@@ -79,9 +80,9 @@ export default class Home extends React.Component{
     this.state.data.forEach(function (item, index) {
         o.push(
          {
-             product_id:item.product_id ,
-             quantity:item.quantityOrdered,
-             price:item.unit_price,
+             product_id:parseInt(item.product_id) ,
+             quantity:parseInt(item.quantityOrdered),
+             price:parseInt(item.unit_price),
              name:item.name
 
          }
@@ -104,6 +105,8 @@ export default class Home extends React.Component{
         
         const {navigate} = this.props.navigation;
         const a = this.state.data.reduce( function(cnt,o){ return cnt + (o.unit_price * o.quantityOrdered)}, 0);
+
+       
         // AsyncStorage.setItem('Total',a)
         return (
     <>
@@ -113,7 +116,7 @@ export default class Home extends React.Component{
                 barStyle={"dark-content"}
                 />
                 <View style={{width:'100%',justifyContent:'center',marginTop:'15%',marginBottom:'3%'}}>
-                    <Text style={{fontSize:20,alignSelf:'center',color:'black',fontFamily:'Quicksand-SemiBold'}}>Carts</Text>
+                    <Text style={{fontSize:20,alignSelf:'center',color:'black',fontFamily:'Quicksand-SemiBold'}}>Cart</Text>
                     <TouchableOpacity  onPress={() => this.props.navigation.goBack()} style={{position:'absolute',marginLeft:"5%"}}>
                     <Feather name="arrow-left" size={20} color={"black"} />
                     </TouchableOpacity>
@@ -180,16 +183,24 @@ export default class Home extends React.Component{
               <Text style={{fontSize:17,alignSelf:'center',color:'#4e3caf',fontFamily:'Quicksand-Bold'}}>N{a}</Text>
 
               </View>
-            <TouchableOpacity
-                style={[styles.UserGreet,{borderRadius:10,alignSelf:'center',flexDirection:'row',height:40,width:"90%",backgroundColor:'#4E3CAF',marginTop:10}]}
-                onPress={()=>
-                    this.navigate(a)
-                    }
-                                >
-                <Text style={{fontSize:13,color:'white',fontFamily:'Quicksand-Bold'}}>Proceed</Text>
+
+              {
+                a > 0?
+                <TouchableOpacity
+                    style={[styles.UserGreet,{borderRadius:10,alignSelf:'center',flexDirection:'row',height:40,width:"90%",backgroundColor:'#4E3CAF',marginTop:10}]}
+                    onPress={()=>
+                        this.navigate(a)
+                        }
+                                    >
+                    <Text style={{fontSize:13,color:'white',fontFamily:'Quicksand-Bold'}}>Proceed</Text>
 
 
-            </TouchableOpacity>
+                </TouchableOpacity>
+                :
+                undefined
+                
+                }
+            
 
         </View>
             

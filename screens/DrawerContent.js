@@ -29,10 +29,23 @@ import AsyncStorage from '@react-native-community/async-storage';
 export function DrawerContent(props){
 
     const [fullName,setFullName]=useState()
+    const [check,setCheck]= useState(false)
+    const [invoiceP,setInvoiceP]=useState("null")
     AsyncStorage.getItem('FullName').then(
         (value) =>
         {setFullName(value)
         console.log(value)}
+      );
+
+      AsyncStorage.getItem('InvoiceP').then(
+        (value) =>
+        {
+           if (value === null){
+            setCheck(false)
+           }else{
+               setCheck(true)
+           }
+    }
       );
     return(
         <View style={{flex:1}}>
@@ -53,12 +66,26 @@ export function DrawerContent(props){
 
                     </View>
 
-                    <TouchableOpacity onPress={()=>{props.navigation.navigate('HomeScreen')}} style={{flexDirection:'row',width:'100%',alignItems:'center',paddingVertical:'10%'}}>
+                    <TouchableOpacity onPress={()=>{check? props.navigation.navigate('InventoryScreen') : props.navigation.navigate('HomeScreen')}} style={{flexDirection:'row',width:'100%',alignItems:'center',paddingVertical:'10%'}}>
                         <View>
 
                          <AntDesign name="home" size={26} color={"#4f4f4f"} />
                         </View>
                         <Text style={{fontSize:13,color:'#4f4f4f',fontFamily:'Quicksand-Regular',marginLeft:10}}>Home</Text>
+                        
+    
+                    </TouchableOpacity>
+                    <Dash 
+                    dashColor={"#e0e0e0"}
+                    dashThickness={1}
+                    dashGap={5}
+                    style={{width:"100%"}}/>
+                     <TouchableOpacity  onPress={()=>{props.navigation.navigate('TransactionScreen')}} style={{flexDirection:'row',width:'100%',alignItems:'center',paddingVertical:'10%'}}>
+                        <View>
+
+                         <Ionicons name="ios-newspaper-outline" size={26} color={"#4f4f4f"} />
+                        </View>
+                        <Text style={{fontSize:13,color:'#4f4f4f',fontFamily:'Quicksand-Regular',marginLeft:10}}>Transactions</Text>
                         
     
                     </TouchableOpacity>
@@ -82,21 +109,8 @@ export function DrawerContent(props){
                     dashThickness={1}
                     dashGap={5}
                     style={{width:"100%"}}/>
-                    <TouchableOpacity  onPress={()=>{props.navigation.navigate('TransactionScreen')}} style={{flexDirection:'row',width:'100%',alignItems:'center',paddingVertical:'10%'}}>
-                        <View>
-
-                         <Ionicons name="ios-newspaper-outline" size={26} color={"#4f4f4f"} />
-                        </View>
-                        <Text style={{fontSize:13,color:'#4f4f4f',fontFamily:'Quicksand-Regular',marginLeft:10}}>Transactions</Text>
-                        
-    
-                    </TouchableOpacity>
-                    <Dash 
-                    dashColor={"#e0e0e0"}
-                    dashThickness={1}
-                    dashGap={5}
-                    style={{width:"100%"}}/>
-                    <TouchableOpacity onPress={()=>{props.navigation.navigate('InventoryScreen')}} style={{flexDirection:'row',width:'100%',alignItems:'center',paddingVertical:'10%'}}>
+                   
+                    {/* <TouchableOpacity onPress={()=>{props.navigation.navigate('InventoryScreen')}} style={{flexDirection:'row',width:'100%',alignItems:'center',paddingVertical:'10%'}}>
                         <View>
 
                          <FontAwesome5 name="boxes" size={26} color={"#4f4f4f"} />
@@ -109,13 +123,13 @@ export function DrawerContent(props){
                     dashColor={"#e0e0e0"}
                     dashThickness={1}
                     dashGap={5}
-                    style={{width:"100%"}}/>
-                    <TouchableOpacity style={{flexDirection:'row',width:'100%',alignItems:'center',paddingVertical:'10%'}}>
+                    style={{width:"100%"}}/> */}
+                    <TouchableOpacity onPress={()=>props.navigation.navigate('Refresh')} style={{flexDirection:'row',width:'100%',alignItems:'center',paddingVertical:'10%'}}>
                         <View>
 
-                         <Feather name="settings" size={26} color={"#4f4f4f"} />
+                         <Feather name="refresh-ccw" size={23} color={"#4f4f4f"} />
                         </View>
-                        <Text style={{fontSize:13,color:'#4f4f4f',fontFamily:'Quicksand-Regular',marginLeft:10}}>Settings</Text>
+                        <Text style={{fontSize:13,color:'#4f4f4f',fontFamily:'Quicksand-Regular',marginLeft:10}}>Refresh </Text>
                         
     
                     </TouchableOpacity>
@@ -125,7 +139,7 @@ export function DrawerContent(props){
                     dashGap={5}
                     style={{width:"100%"}}/>
 
-                     <TouchableOpacity onPress={()=>{
+                     {/* <TouchableOpacity onPress={()=>{
                          
                          AsyncStorage.clear();
                          props.navigation.navigate('App')
@@ -138,7 +152,7 @@ export function DrawerContent(props){
                         <Text style={{fontSize:13,color:'#4e3caf',fontFamily:'Quicksand-Regular',marginLeft:10}}>Log out</Text>
                         
     
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                    
                     
                 </View>
